@@ -4,6 +4,7 @@
 from io import TextIOWrapper
 from datetime import datetime
 from typing import List, Optional
+import subprocess
 
 import click
 
@@ -18,8 +19,10 @@ from florgon_cc_cli.services.paste import (
     extract_hash_from_paste_short_url,
     get_paste_stats_by_hash,
     clear_paste_stats_by_hash,
+    edit_paste_by_hash,
 )
 from florgon_cc_cli.services.files import concat_files
+from florgon_cc_cli import config
 
 
 @click.group()
@@ -65,7 +68,9 @@ def create(
     text: Optional[str],
     from_files: List[TextIOWrapper],
 ):
-    """Creates paste from text or file."""
+    """
+    Creates paste from text or file.
+    """
     if from_files and text:
         click.secho("Pass --from-file or --text, but not both!", fg="red", err=True)
         return
@@ -109,7 +114,9 @@ def create(
     "-e", "--exclude-expired", is_flag=True, default=False, help="Do not show expired pastes."
 )
 def list(exclude_expired: bool):
-    """Prints a list of your pastes. Auth expired."""
+    """
+    Prints a list of your pastes. Auth expired.
+    """
     success, response = get_pastes_list(access_token=get_access_token())
     if not success:
         click.secho(response["message"], err=True, fg="red")
@@ -134,7 +141,10 @@ def list(exclude_expired: bool):
 @click.option("-s", "--short_url", type=str, help="Short url.")
 @click.option("-o", "--only-text", is_flag=True, default=False, help="Prints only paste text.")
 def read(short_url, only_text):
-    """Prints text and info about paste."""
+    """
+    Prints text and info about paste.
+    If short url is not passed, you can choose it from your pastes interactively.
+    """
     if short_url:
         short_url_hash = extract_hash_from_paste_short_url(short_url)
     else:
@@ -161,6 +171,7 @@ def read(short_url, only_text):
 def delete(short_url: str):
     """
     Deletes paste. Auth Required.
+    If short url is not passed, you can choose it from your pastes interactively.
     """
     if short_url:
         short_url_hash = extract_hash_from_paste_short_url(short_url)
@@ -196,7 +207,10 @@ def delete(short_url: str):
     help="Paste views dates as.",
 )
 def stats(short_url: str, referers_as: str, dates_as: str):
-    """Prints paste views statistics."""
+    """
+    Prints paste views statistics.
+    If short url is not passed, you can choose it from your pastes interactively.
+    """
     if short_url:
         paste_hash = extract_hash_from_paste_short_url(short_url)
     else:
@@ -251,3 +265,45 @@ def clear_stats(short_url: str):
         return
 
     click.secho("Paste stats was successfully cleared!", fg="green")
+
+
+@paste.command()
+@click.option("-s", "--short-url", type=str, help="Short url.")
+@click.option(
+    "-e",
+    "--editor",
+    type=str,
+    envvar="EDITOR",
+    prompt="Editor for paste",
+    help="Open in specified editor. Defaults to EDITOR environment variable.",
+)
+def edit(short_url: str, editor: str):
+    if short_url:
+        short_url_hash = extract_hash_from_paste_short_url(short_url)
+    else:
+        click.echo("Short url is not specified, requesting for list of your pastes.")
+        short_url_hash = request_hash_from_pastes_list(access_token=get_access_token())
+
+    success, response = get_paste_info_by_hash(hash=short_url_hash)
+    if not success:
+        click.secho(response["message"], err=True, fg="red")
+        return
+
+    paste_filename = config.TEMP_FILES_DIR / f"florgon_cc_cli_paste_{short_url_hash}"
+    with open(paste_filename, "w") as paste_file:
+        paste_file.write(response["text"])
+
+    process_result = subprocess.run([editor, paste_filename])
+    if process_result.returncode != 0:
+        click.secho(
+            f"An error occured during editing the paste! Exit code: {process_result.returncode}"
+        )
+
+    with open(paste_filename, "r") as paste_file:
+        new_text = paste_file.read()
+    success, response = edit_paste_by_hash(hash=short_url_hash, text=new_text, access_token=get_access_token())
+    if not success:
+        click.secho(response["message"], err=True, fg="red")
+        return
+
+    click.secho("Paste was successfully edited!", fg="green")
