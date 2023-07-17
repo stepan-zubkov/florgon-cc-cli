@@ -217,3 +217,25 @@ def clear_paste_stats_by_hash(
     if response.status_code == 204:
         return (True,)
     return try_decode_response_to_json(response)
+
+
+def edit_paste_by_hash(
+    hash: str, text: str, access_token: Optional[str] = None
+) -> Union[Tuple[Literal[True], Paste], Tuple[Literal[False], Error], NoReturn]:
+    """
+    Edits user's paste text by hash
+    :param str hash: paste hash
+    :param str text: new paste text
+    :param Optional[str] access_token: access token
+    :return: Tuple with two or one elements.
+             First is a response status (True if successfully).
+             Seconds is a response body.
+    :rtype: Tuple[True, Paste] if successfully edited, Tuple[False, Error] if error occured,
+            or exit application if cannot decode to json
+    """
+    response = execute_json_api_method(
+        "PATCH", f"pastes/{hash}/", access_token=access_token, data={"text": text}
+    )
+    if "success" in response:
+        return True, response["success"]["paste"]
+    return False, response["error"]
