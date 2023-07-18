@@ -132,7 +132,7 @@ def request_hash_from_urls_list() -> Union[str, NoReturn]:
 
 
 def get_urls_list(
-    access_token: Optional[str] = None,
+        access_token: Optional[str] = None, only_expired: bool = False,
 ) -> Union[Tuple[Literal[True], List[Url]], Tuple[Literal[False], Error]]:
     """
     Returns user's urls by access_token.
@@ -145,6 +145,8 @@ def get_urls_list(
     response = execute_json_api_method("GET", "urls/", access_token=access_token)
     if "success" in response:
         # NOTE: This is temporary solution. Should be moved to cc-api.
+        if only_expired:
+            return True, [url for url in response["success"]["urls"] if url["is_expired"]]
         return True, [url for url in response["success"]["urls"] if not url["is_deleted"]]
     return False, response["error"]
 
