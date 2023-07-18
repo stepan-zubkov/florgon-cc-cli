@@ -170,6 +170,20 @@ def delete_url_by_hash(
     return try_decode_response_to_json(response)
 
 
+def delete_expired_urls(
+    access_token: Optional[str] = None,
+) -> Union[Tuple[Literal[True]], Tuple[Literal[False], Error], NoReturn]:
+    success, urls = get_urls_list(access_token=access_token, only_expired=True)
+    if not success:
+        return (success, urls)
+    for url in urls:
+        success, *response = delete_url_by_hash(hash=url["hash"], access_token=access_token)
+        if not success:
+            return (success, response[0])
+
+    return (True,)
+
+
 def clear_url_stats_by_hash(
     hash: str, access_token: Optional[str] = None
 ) -> Union[Tuple[Literal[True]], Tuple[Literal[False], Error], NoReturn]:
