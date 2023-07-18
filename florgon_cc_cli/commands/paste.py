@@ -75,8 +75,19 @@ def create(
         click.secho("Pass --from-file or --text, but not both!", fg="red", err=True)
         return
     if not from_files and not text:
-        click.secho("Pass --from-file or --text!", fg="red", err=True)
-        return
+        click.echo("Options --from-file or --text are not passed, using stdin for paste text.")
+        click.echo("Enter text line by line, end text with ';' on single line:\n")
+
+        line = ""
+        text = ""
+        while line != ";":
+            try:
+                line = input()
+            except KeyboardInterrupt:
+                click.echo("\nAborting...")
+                return
+            text += line + "\n"
+        text = text[:-3]
     if from_files:
         text = concat_files(from_files)
 
