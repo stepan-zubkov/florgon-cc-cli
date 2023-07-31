@@ -167,7 +167,7 @@ def delete_url_by_hash(
     response = execute_api_method("DELETE", f"urls/{hash}/", access_token=access_token)
     if response.status_code == 204:
         return (True,)
-    return try_decode_response_to_json(response)
+    return False, try_decode_response_to_json(response)["error"]
 
 
 def delete_expired_urls(
