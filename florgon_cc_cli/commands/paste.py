@@ -64,6 +64,7 @@ def paste():
 @click.option("-t", "--text", type=str, help="Paste text.")
 def create(
     only_url: bool,
+    lang: str,
     do_not_save: bool,
     stats_is_public: bool,
     burn_after_read: bool,
