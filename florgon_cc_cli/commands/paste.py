@@ -9,7 +9,7 @@ import subprocess
 import click
 
 from florgon_cc_cli.services.config import get_access_token
-from florgon_cc_cli.services.paste import (
+from florgon_cc_cli.services.paste.requests import (
     build_paste_open_url,
     create_paste,
     get_pastes_list,
@@ -21,6 +21,7 @@ from florgon_cc_cli.services.paste import (
     clear_paste_stats_by_hash,
     edit_paste_by_hash,
 )
+from florgon_cc_cli.services.paste.syntax_highlighting import get_highlighted_code
 from florgon_cc_cli.services.files import concat_files
 from florgon_cc_cli import config
 
@@ -167,7 +168,8 @@ def read(short_url, only_text):
         click.secho(response["message"], err=True, fg="red")
         return
     if only_text:
-        click.echo("Text:\n" + response["text"].replace("\\n", "\n"))
+        text = get_highlighted_code(response["text"].replace("\\n", "\n"), lang=response["lang"])
+        click.echo("Text:\n" + text)
         return
     click.echo(f"Expires at: {datetime.fromtimestamp(response['expires_at'])}")
     if response["stats_is_public"]:
