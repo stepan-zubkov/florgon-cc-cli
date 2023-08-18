@@ -171,7 +171,7 @@ def read(short_url, only_text):
         click.secho(response["message"], err=True, fg="red")
         return
     if only_text:
-        text = get_highlighted_code(response["text"], lang=response["lang"])
+        text = get_highlighted_code(response["text"], lang=response["language"])
         click.echo("Text:\n" + text)
         return
     click.echo(f"Expires at: {datetime.fromtimestamp(response['expires_at'])}")
@@ -179,7 +179,7 @@ def read(short_url, only_text):
         click.echo("Stats is public")
     if response["burn_after_read"]:
         click.secho("This paste will burn after reading!", fg="bright_yellow")
-    text = get_highlighted_code(response["text"], lang=response["lang"])
+    text = get_highlighted_code(response["text"], lang=response["language"])
     click.echo("Text:\n" + text)
 
 

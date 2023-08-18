@@ -51,7 +51,7 @@ def create_paste(
         "pastes/",
         data={
             "text": text,
-            "lang": lang,
+            "language": lang,
             "stats_is_public": stats_is_public,
             "burn_after_read": burn_after_read,
         },
