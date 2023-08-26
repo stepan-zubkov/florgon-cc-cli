@@ -28,7 +28,6 @@ class Paste(TypedDict):
     id: int
     text: str
     hash: str
-    lang: str
     expires_at: float
     is_expired: bool
     stats_is_public: bool

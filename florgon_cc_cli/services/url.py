@@ -132,7 +132,7 @@ def request_hash_from_urls_list() -> Union[str, NoReturn]:
 
 
 def get_urls_list(
-        access_token: Optional[str] = None, only_expired: bool = False,
+    access_token: Optional[str] = None,
 ) -> Union[Tuple[Literal[True], List[Url]], Tuple[Literal[False], Error]]:
     """
     Returns user's urls by access_token.
@@ -145,8 +145,6 @@ def get_urls_list(
     response = execute_json_api_method("GET", "urls/", access_token=access_token)
     if "success" in response:
         # NOTE: This is temporary solution. Should be moved to cc-api.
-        if only_expired:
-            return True, [url for url in response["success"]["urls"] if url["is_expired"]]
         return True, [url for url in response["success"]["urls"] if not url["is_deleted"]]
     return False, response["error"]
 
@@ -167,21 +165,7 @@ def delete_url_by_hash(
     response = execute_api_method("DELETE", f"urls/{hash}/", access_token=access_token)
     if response.status_code == 204:
         return (True,)
-    return False, try_decode_response_to_json(response)["error"]
-
-
-def delete_expired_urls(
-    access_token: Optional[str] = None,
-) -> Union[Tuple[Literal[True]], Tuple[Literal[False], Error], NoReturn]:
-    success, urls = get_urls_list(access_token=access_token, only_expired=True)
-    if not success:
-        return (success, urls)
-    for url in urls:
-        success, *response = delete_url_by_hash(hash=url["hash"], access_token=access_token)
-        if not success:
-            return (success, response[0])
-
-    return (True,)
+    return try_decode_response_to_json(response)
 
 
 def clear_url_stats_by_hash(

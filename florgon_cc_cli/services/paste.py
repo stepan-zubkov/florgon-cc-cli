@@ -28,7 +28,6 @@ def build_paste_open_url(hash: str) -> str:
 def create_paste(
     text: str,
     *,
-    lang: Optional[str],
     stats_is_public: bool = False,
     burn_after_read: bool = False,
     access_token: Optional[str] = None,
@@ -36,7 +35,6 @@ def create_paste(
     """
     Creates paste from text.
     :param str text: paste text
-    :param str lang: programming language of paste
     :param Optional[str] access_token: Florgon OAuth token that used for authorization.
                                      Defaults to None
     :param bool stats_is_public: makes url stats public for all users
@@ -49,12 +47,7 @@ def create_paste(
     response = execute_json_api_method(
         "POST",
         "pastes/",
-        data={
-            "text": text,
-            "language": lang,
-            "stats_is_public": stats_is_public,
-            "burn_after_read": burn_after_read,
-        },
+        data={"text": text, "stats_is_public": stats_is_public, "burn_after_read": burn_after_read},
         access_token=access_token,
     )
     if "success" in response:
