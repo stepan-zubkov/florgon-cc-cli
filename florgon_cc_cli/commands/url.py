@@ -16,7 +16,6 @@ from florgon_cc_cli.services.url import (
     request_hash_from_urls_list,
     delete_url_by_hash,
     clear_url_stats_by_hash,
-    delete_expired_urls,
 )
 
 
@@ -160,19 +159,10 @@ def list():
 
 @url.command()
 @click.option("-s", "--short-url", type=str, help="Short url.")
-@click.option("-e", "--expired", is_flag=True, default=False, help="Delete all expired urls.")
-def delete(short_url: str, expired: bool):
+def delete(short_url: str):
     """
     Deletes short url. Auth Required.
     """
-    if expired:
-        click.echo("Deleting all expired urls...")
-        success, *response = delete_expired_urls(access_token=get_access_token())
-        if not success:
-            click.secho(response[0]["message"], err=True, fg="red")
-            return
-        click.secho("Successfully deleted all expired urls!", fg="green")
-        return
     if short_url:
         short_url_hash = extract_hash_from_short_url(short_url)
     else:
