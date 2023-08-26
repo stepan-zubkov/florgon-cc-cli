@@ -9,7 +9,7 @@ import subprocess
 import click
 
 from florgon_cc_cli.services.config import get_access_token
-from florgon_cc_cli.services.paste import (
+from florgon_cc_cli.services.paste.requests import (
     build_paste_open_url,
     create_paste,
     get_pastes_list,
@@ -21,6 +21,7 @@ from florgon_cc_cli.services.paste import (
     clear_paste_stats_by_hash,
     edit_paste_by_hash,
 )
+from florgon_cc_cli.services.paste.syntax_highlighting import get_highlighted_code
 from florgon_cc_cli.services.files import concat_files
 from florgon_cc_cli import config
 
@@ -37,6 +38,7 @@ def paste():
 @click.option(
     "-d", "--do-not-save", is_flag=True, default=False, help="Do not save paste in local history."
 )
+@click.option("-l", "--lang", type=str, help="Programming language of paste.")
 @click.option(
     "-s",
     "--stats-is-public",
@@ -62,6 +64,7 @@ def paste():
 @click.option("-t", "--text", type=str, help="Paste text.")
 def create(
     only_url: bool,
+    lang: str,
     do_not_save: bool,
     stats_is_public: bool,
     burn_after_read: bool,
@@ -75,8 +78,19 @@ def create(
         click.secho("Pass --from-file or --text, but not both!", fg="red", err=True)
         return
     if not from_files and not text:
-        click.secho("Pass --from-file or --text!", fg="red", err=True)
-        return
+        click.echo("Options --from-file or --text are not passed, using stdin for paste text.")
+        click.echo("Enter text line by line, end text with ';' on single line:\n")
+
+        line = ""
+        text = ""
+        while line != ";":
+            try:
+                line = input()
+            except KeyboardInterrupt:
+                click.echo("\nAborting...")
+                return
+            text += line + "\n"
+        text = text[:-3]
     if from_files:
         text = concat_files(from_files)
 
@@ -87,6 +101,7 @@ def create(
 
     success, response = create_paste(
         text,
+        lang=lang,
         stats_is_public=stats_is_public,
         burn_after_read=burn_after_read,
         access_token=access_token,
@@ -156,14 +171,16 @@ def read(short_url, only_text):
         click.secho(response["message"], err=True, fg="red")
         return
     if only_text:
-        click.echo("Text:\n" + response["text"].replace("\\n", "\n"))
+        text = get_highlighted_code(response["text"], lang=response["language"])
+        click.echo("Text:\n" + text)
         return
     click.echo(f"Expires at: {datetime.fromtimestamp(response['expires_at'])}")
     if response["stats_is_public"]:
         click.echo("Stats is public")
     if response["burn_after_read"]:
         click.secho("This paste will burn after reading!", fg="bright_yellow")
-    click.echo("Text:\n" + response["text"].replace("\\n", "\n"))
+    text = get_highlighted_code(response["text"], lang=response["language"])
+    click.echo("Text:\n" + text)
 
 
 @paste.command()
