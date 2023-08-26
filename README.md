@@ -1,6 +1,6 @@
 # Florgon-CC-cli
 
-![](https://img.shields.io/badge/status-Alpha-yellow)
+![](https://img.shields.io/badge/status-Beta-yellow)
 ![](https://img.shields.io/pypi/dm/florgon-cc-cli)
 ![](https://img.shields.io/pypi/v/florgon-cc-cli)
 ![](https://img.shields.io/pypi/status/florgon-cc-cli)
