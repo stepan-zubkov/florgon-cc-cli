@@ -295,6 +295,9 @@ def clear_stats(short_url: str):
     help="Open in specified editor. Defaults to EDITOR environment variable.",
 )
 def edit(short_url: str, editor: str):
+    """
+        Edits paste's text.
+    """
     if short_url:
         short_url_hash = extract_hash_from_paste_short_url(short_url)
     else:
