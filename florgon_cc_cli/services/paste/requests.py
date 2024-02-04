@@ -246,3 +246,25 @@ def edit_paste_by_hash(
     if "success" in response:
         return True, response["success"]["paste"]
     return False, response["error"]
+
+
+def set_paste_language_by_hash(
+    hash: str, language: str, access_token: Optional[str],
+) -> Union[Tuple[Literal[True], Paste], Tuple[Literal[False], Error], NoReturn]:
+    """
+    Set's user paste language by hash
+    :param str hash: paste hash
+    :param str language: new paste programming language
+    :param Optional[str] access_token: access token
+    :return: Tuple with two or one elements.
+             First is a response status (True if successfully).
+             Seconds is a response body.
+    :rtype: Tuple[True, Paste] if successfully edited, Tuple[False, Error] if error occured,
+            or exit application if cannot decode to json
+    """
+    response = execute_json_api_method(
+        "PATCH", f"pastes/{hash}/", access_token=access_token, data={"language": language}
+    )
+    if "success" in response:
+        return True, response["success"]["paste"]
+    return False, response["error"]

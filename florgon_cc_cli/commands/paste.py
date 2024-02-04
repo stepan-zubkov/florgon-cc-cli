@@ -20,6 +20,7 @@ from florgon_cc_cli.services.paste.requests import (
     get_paste_stats_by_hash,
     clear_paste_stats_by_hash,
     edit_paste_by_hash,
+    set_paste_language_by_hash,
 )
 from florgon_cc_cli.services.paste.syntax_highlighting import get_highlighted_code
 from florgon_cc_cli.services.files import concat_files
@@ -327,3 +328,29 @@ def edit(short_url: str, editor: str):
         return
 
     click.secho("Paste was successfully edited!", fg="green")
+
+
+@paste.command()
+@click.option("-s", "--short-url", type=str, help="Short url.")
+@click.argument("language", type=str)
+def set_language(short_url: str, language: str):
+    """
+        Sets paste's programming language.
+    """
+    if short_url:
+        short_url_hash = extract_hash_from_paste_short_url(short_url)
+    else:
+        click.echo("Short url is not specified, requesting for list of your pastes.")
+        short_url_hash = request_hash_from_pastes_list(access_token=get_access_token())
+
+    success, response = set_paste_language_by_hash(
+        hash=short_url_hash,
+        access_token=get_access_token(),
+        language=language
+    )
+    if not success:
+        click.secho(response["message"], err=True, fg="red")
+        return
+
+    click.secho("Paste's language successfully changed!", fg="green")
+
