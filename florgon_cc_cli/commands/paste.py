@@ -96,9 +96,6 @@ def create(
         text = concat_files(from_files)
 
     access_token = get_access_token()
-    if stats_is_public and access_token is None:
-        click.secho("Auth required for --stats-is-public flag!", fg="red", err=True)
-        return
 
     success, response = create_paste(
         text,
